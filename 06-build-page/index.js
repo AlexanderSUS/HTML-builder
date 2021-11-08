@@ -70,13 +70,6 @@ function writeToFile(url, content) {
   })
 }
 
-function detectFirstStyle(dfData) {
-  if (dfData.search('body {\n') != -1) {
-    return true;
-  }
-  return false;
-}
-
 function handleData(hdData, hdComponents) {
   
   return new Promise((resolve) => {
@@ -289,42 +282,17 @@ function copyDir(src, trgt) {
   })
 } 
 
-function prependData(url, pdData) {
-  return new Promise((resolve) => {
-    fs.readFile(url, (err, copy) => {
-      if (err) {
-        return console.error(err);
-      }
-
-      fs.writeFile(url, pdData, {flag: 'w+'}, err => {
-        if (err) {
-          return console.error(err);
-        }
-
-        fs.appendFile(url, copy, err => {
-          if (err) {
-            return console.error(err);
-          }
-          resolve();
-        })
-      })
-    })
-  })
-}
-
 function buildStyles(src, trgt) {
 
   return new Promise((resolve) => {
+
     removeFile(trgt)
     .then(() => {
 
       fs.readdir(src, (err, files) => {
         if (err) {
-          console.error(err);
+          return console.error(err);
         }
-
-        let header;
-        let i = 0;
 
         for (let file in files) {
           const currentSourceUrl = `${src}/${files[file]}`;
@@ -339,33 +307,16 @@ function buildStyles(src, trgt) {
                   return console.error(err);
                 }
 
-                if (detectFirstStyle(data)) {
-
-                  header = data;
-                  i++;
-
-                  if (i == files.length -1) {
-                    prependData(trgt, header).then(() => {
-                      resolve();
-                    })
-                  }
-                } else {
-                  fs.appendFile(trgt, data, err => {
-                    if (err) {
-                      console.error(err);
-                    }
-                    i++;
-                    if (i == files.length -1) {
-                      prependData(trgt, header).then(() => {
-                        resolve();
-                      })
-                    }
-                  })
-                }
+                fs.appendFile(trgt, data, err => { 
+                  if (err) { 
+                    console.error(err); 
+                  } 
+                })
               })
             }
           })
         }
+        resolve();
       })
     })
   })
